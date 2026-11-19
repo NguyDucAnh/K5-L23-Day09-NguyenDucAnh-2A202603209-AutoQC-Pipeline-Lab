@@ -1,0 +1,32 @@
+check,severity,code,image,line,message,extra
+missing_labels,warn,EMPTY_LABEL,img_0013,,file nhãn rỗng: ảnh nền hay thiếu nhãn?,
+missing_labels,warn,EMPTY_LABEL,img_0097,,file nhãn rỗng: ảnh nền hay thiếu nhãn?,
+missing_labels,warn,EMPTY_LABEL,img_0129,,file nhãn rỗng: ảnh nền hay thiếu nhãn?,
+missing_labels,warn,EMPTY_LABEL,img_0147,,file nhãn rỗng: ảnh nền hay thiếu nhãn?,
+missing_labels,warn,EMPTY_LABEL,img_0184,,file nhãn rỗng: ảnh nền hay thiếu nhãn?,
+missing_labels,warn,EMPTY_LABEL,img_0192,,file nhãn rỗng: ảnh nền hay thiếu nhãn?,
+label_format,warn,BOX_HUGE,img_0018,1,diện tích box quá lớn,
+label_format,warn,BOX_TINY,img_0026,6,cạnh ngắn của box nhỏ hơn ngưỡng,
+label_format,warn,BOX_TINY,img_0051,5,cạnh ngắn của box nhỏ hơn ngưỡng,
+label_format,warn,BOX_HUGE,img_0128,1,diện tích box quá lớn,
+label_format,warn,BOX_TINY,img_0161,2,cạnh ngắn của box nhỏ hơn ngưỡng,
+label_format,warn,BOX_TINY,img_0161,3,cạnh ngắn của box nhỏ hơn ngưỡng,
+label_format,warn,BOX_TINY,img_0161,4,cạnh ngắn của box nhỏ hơn ngưỡng,
+label_format,warn,BOX_TINY,img_0183,11,cạnh ngắn của box nhỏ hơn ngưỡng,
+label_format,warn,BOX_HUGE,img_0196,1,diện tích box quá lớn,
+second_opinion,warn,POSSIBLE_FALSE_POS,img_0014,2,box nhãn không khớp dự đoán nào của model,"{""iou"": 0.0}"
+second_opinion,warn,POSSIBLE_LOOSE_BOX,img_0021,,box cùng lớp có thể bị lỏng hoặc lệch,"{""conf"": 0.8362, ""iou"": 0.4859935892263159}"
+second_opinion,warn,POSSIBLE_FALSE_POS,img_0022,2,box nhãn không khớp dự đoán nào của model,"{""iou"": 0.0}"
+second_opinion,warn,POSSIBLE_FALSE_POS,img_0068,8,box nhãn không khớp dự đoán nào của model,"{""iou"": 0.0}"
+second_opinion,warn,POSSIBLE_FALSE_POS,img_0075,6,box nhãn không khớp dự đoán nào của model,"{""iou"": 0.0}"
+second_opinion,warn,POSSIBLE_WRONG_CLASS,img_0078,,model dự đoán lớp khác với nhãn,"{""conf"": 0.8287}"
+second_opinion,warn,POSSIBLE_FALSE_POS,img_0091,10,box nhãn không khớp dự đoán nào của model,"{""iou"": 0.0}"
+second_opinion,warn,POSSIBLE_FALSE_POS,img_0124,8,box nhãn không khớp dự đoán nào của model,"{""iou"": 0.0}"
+second_opinion,warn,POSSIBLE_FALSE_POS,img_0131,11,box nhãn không khớp dự đoán nào của model,"{""iou"": 0.0}"
+second_opinion,warn,POSSIBLE_FALSE_POS,img_0177,2,box nhãn không khớp dự đoán nào của model,"{""iou"": 0.0}"
+second_opinion,warn,POSSIBLE_FALSE_POS,img_0180,5,box nhãn không khớp dự đoán nào của model,"{""iou"": 0.0}"
+second_opinion,warn,POSSIBLE_MISSING,img_0183,,model thấy vật chưa có box nhãn,"{""conf"": 0.8104}"
+second_opinion,warn,POSSIBLE_FALSE_POS,img_0189,4,box nhãn không khớp dự đoán nào của model,"{""iou"": 0.0}"
+second_opinion,warn,POSSIBLE_FALSE_POS,img_0191,1,box nhãn không khớp dự đoán nào của model,"{""iou"": 0.0}"
+second_opinion,warn,POSSIBLE_FALSE_POS,img_0206,1,box nhãn không khớp dự đoán nào của model,"{""iou"": 0.0}"
+second_opinion,warn,POSSIBLE_FALSE_POS,img_0212,4,box nhãn không khớp dự đoán nào của model,"{""iou"": 0.0}"

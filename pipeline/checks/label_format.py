@@ -25,5 +25,52 @@ from ..common import ERROR, WARN, Issue, iou_xywh, parse_yolo_line  # noqa: F401
 
 
 def run(ds, cfg):
-    # TODO: duyệt từng file nhãn, từng dòng
-    raise NotImplementedError("check label_format chưa làm")
+    rules = cfg["label_format"]
+    issues = []
+    for path in ds.label_files():
+        stem = path.stem
+        size = ds.image_size(stem)
+        width, height = size if size is not None else (None, None)
+        previous = []
+
+        for line_no, text in enumerate(path.read_text(encoding="utf-8", errors="replace").splitlines(), 1):
+            if not text.strip():
+                continue
+            try:
+                cls, cx, cy, w, h = parse_yolo_line(text)
+            except ValueError as exc:
+                issues.append(Issue("label_format", ERROR, "BAD_FORMAT", stem, str(exc), line_no))
+                continue
+
+            if not 0 <= cls < len(ds.classes):
+                issues.append(Issue("label_format", ERROR, "BAD_CLASS_ID", stem,
+                                    f"id lớp {cls} ngoài phạm vi", line_no))
+                continue
+            if w <= 0 or h <= 0:
+                issues.append(Issue("label_format", ERROR, "BOX_ZERO", stem,
+                                    "chiều rộng hoặc chiều cao phải lớn hơn 0", line_no))
+                continue
+
+            box = (cx, cy, w, h)
+            left, top = cx - w / 2, cy - h / 2
+            right, bottom = cx + w / 2, cy + h / 2
+            overflow = max(0.0, -left, -top, right - 1.0, bottom - 1.0)
+            if overflow > rules["overflow_tol"]:
+                issues.append(Issue("label_format", ERROR, "BOX_OUT_OF_IMAGE", stem,
+                                    f"box tràn ảnh {overflow:.6g}", line_no,
+                                    {"overflow": overflow}))
+
+            if any(old_cls == cls and iou_xywh(box, old_box) > rules["dup_box_iou"]
+                   for old_cls, old_box in previous):
+                issues.append(Issue("label_format", ERROR, "DUP_BOX", stem,
+                                    "box trùng với dòng nhãn trước đó", line_no))
+            previous.append((cls, box))
+
+            if width is not None and height is not None:
+                if min(w * width, h * height) < rules["min_box_px"]:
+                    issues.append(Issue("label_format", WARN, "BOX_TINY", stem,
+                                        "cạnh ngắn của box nhỏ hơn ngưỡng", line_no))
+            if w * h > rules["max_box_frac"]:
+                issues.append(Issue("label_format", WARN, "BOX_HUGE", stem,
+                                    "diện tích box quá lớn", line_no))
+    return issues

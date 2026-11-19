@@ -40,5 +40,71 @@ from ..model_cache import get_preds  # noqa: F401
 
 
 def run(ds, cfg, preds=None):
-    # TODO
-    raise NotImplementedError("check second_opinion chưa làm")
+    if preds is None:
+        preds = get_preds(ds, cfg, "checker")
+
+    rules = cfg["second_opinion"]
+    issues = []
+    for image_path in ds.image_files():
+        stem = image_path.stem
+        if stem not in preds:
+            continue
+        label_path = ds.label_path(stem)
+        if not label_path.exists():
+            continue
+
+        size = ds.image_size(stem)
+        if size is None:
+            continue
+        width, height = size
+        labels = []
+        for line_no, text in ds.read_label_lines(stem) or []:
+            try:
+                cls, cx, cy, w, h = parse_yolo_line(text)
+            except ValueError:
+                continue
+            if 0 <= cls < len(ds.classes):
+                labels.append((cls, (cx, cy, w, h), line_no))
+
+        all_predictions = []
+        eligible_predictions = []
+        for prediction in preds[stem]:
+            cls, conf, cx, cy, w, h = prediction
+            box = (cx, cy, w, h)
+            if conf >= rules["fp_conf"]:
+                all_predictions.append((cls, conf, box))
+            if conf >= rules["conf"] and w * width * h * height >= rules["min_area_px"]:
+                eligible_predictions.append((cls, conf, box))
+
+        for pred_cls, confidence, pred_box in eligible_predictions:
+            candidates = [
+                (iou_xywh(pred_box, label_box), label_cls)
+                for label_cls, label_box, _ in labels
+                if iou_xywh(pred_box, label_box) >= rules["iou_missing"]
+            ]
+            if not candidates:
+                issues.append(Issue("second_opinion", WARN, "POSSIBLE_MISSING", stem,
+                                    "model thấy vật chưa có box nhãn", extra={"conf": confidence}))
+                continue
+
+            same_class = [iou for iou, label_cls in candidates if label_cls == pred_cls]
+            if same_class:
+                best_iou = max(same_class)
+                if best_iou < rules["iou_loose"]:
+                    issues.append(Issue("second_opinion", WARN, "POSSIBLE_LOOSE_BOX", stem,
+                                        "box cùng lớp có thể bị lỏng hoặc lệch",
+                                        extra={"conf": confidence, "iou": best_iou}))
+                continue
+
+            other_class = [iou for iou, label_cls in candidates if label_cls != pred_cls]
+            if other_class and max(other_class) >= rules["iou_match"]:
+                issues.append(Issue("second_opinion", WARN, "POSSIBLE_WRONG_CLASS", stem,
+                                    "model dự đoán lớp khác với nhãn", extra={"conf": confidence}))
+
+        for label_cls, label_box, line_no in labels:
+            if all(iou_xywh(label_box, pred_box) < rules["iou_missing"]
+                   for _, _, pred_box in all_predictions):
+                issues.append(Issue("second_opinion", WARN, "POSSIBLE_FALSE_POS", stem,
+                                    "box nhãn không khớp dự đoán nào của model",
+                                    line=line_no, extra={"iou": 0.0}))
+    return issues

@@ -20,5 +20,39 @@ from ..common import ERROR, WARN  # noqa: F401
 
 
 def decide(issues, image_stems, cfg, reviewed=frozenset()):
-    # TODO
-    raise NotImplementedError("gate chưa làm")
+    stems = set(image_stems)
+    reviewed = set(reviewed)
+    errors = [issue for issue in issues if issue.severity == ERROR]
+    warned_images = {
+        issue.image for issue in issues
+        if issue.severity == WARN and issue.image in stems and issue.image not in reviewed
+    }
+    n_images = len(stems)
+    n_warn_images = len(warned_images)
+    warn_ratio = n_warn_images / n_images if n_images else 0.0
+    threshold = cfg["gate"]["warn_ratio_hold"]
+
+    if errors:
+        decision = "Rework"
+        reasons = [f"Còn {len(errors)} lỗi bắt buộc chưa được xử lý."]
+    elif warn_ratio >= threshold:
+        decision = "Hold"
+        reasons = [
+            f"{n_warn_images}/{n_images} ảnh còn cảnh báo "
+            f"({warn_ratio:.1%}), đạt/vượt ngưỡng Hold {threshold:.1%}."
+        ]
+    else:
+        decision = "Release"
+        reasons = [
+            f"Không còn lỗi bắt buộc; {n_warn_images}/{n_images} ảnh còn cảnh báo "
+            f"({warn_ratio:.1%}), dưới ngưỡng Hold {threshold:.1%}."
+        ]
+
+    return {
+        "decision": decision,
+        "n_errors": len(errors),
+        "n_warn_images": n_warn_images,
+        "n_images": n_images,
+        "warn_ratio": round(warn_ratio, 4),
+        "reasons": reasons,
+    }
