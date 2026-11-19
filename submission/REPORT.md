@@ -32,7 +32,14 @@ Chạy thử `--budget 0 --reports work/rep_nb --export-dir work/exp_nb` cho k�
 Tôi đã xem 10 ảnh đã vẽ nhãn. Ba lỗi quan sát được: `img_0050` có box người chiều rộng 0 (dòng 1); `img_0100` có box lớp car rộng 98,5% ảnh và cao 88,8% ảnh nhưng diện tích 87,5% vẫn thấp hơn ngưỡng BOX_HUGE cố định 95%; `img_0030` có box người tràn mép trái (dòng 9) giữa cảnh đông người. Đây là điểm mù: ngưỡng diện tích không bắt mọi box quá rộng về mặt ngữ nghĩa, còn ảnh đông người làm box chồng lấn khó phân xử. Thêm nữa, second opinion chỉ tạo cảnh báo chứ không chứng minh nhãn đúng; trên calib, recall `LOOSE_BOX` giảm từ 0.40 xuống 0.20 khi nâng `conf` lên 0.8. Các trường hợp này cần người xem ảnh gốc.
 
 ## 5. Train: raw vs clean
-**Chưa chạy**: train Colab là tùy chọn chấm riêng; lượt này hoàn thành phần lõi và không chạy huấn luyện.
+Đã train trên Colab bằng cùng cấu hình `yolo26n.pt`, 20 epoch, batch 16, `imgsz=640`, hai seed (0, 1) và cùng tập đánh giá. Raw dùng 224 ảnh; clean dùng 203 ảnh theo manifest pipeline.
+
+| Biến thể | mAP50 (TB ± SD) | mAP50-95 (TB ± SD) | Precision (TB ± SD) | Recall (TB ± SD) |
+|---|---:|---:|---:|---:|
+| raw (224 ảnh) | 0.726 ± 0.000 | 0.512 ± 0.004 | 0.764 ± 0.061 | 0.649 ± 0.028 |
+| clean (203 ảnh) | 0.707 ± 0.015 | 0.496 ± 0.008 | 0.788 ± 0.062 | 0.595 ± 0.056 |
+
+Chênh mAP50 `clean − raw` là **−0.019**; clean có precision trung bình cao hơn (+0.024), nhưng recall thấp hơn (−0.054). Độ lệch giữa seed của mAP50 clean (0.015) lớn hơn chênh lệch trung bình raw/clean, nên với hai seed chưa thể kết luận chắc chắn rằng pipeline làm giảm chất lượng mô hình. Kết quả này chỉ mô tả lần chạy và cấu hình trên; cần thêm seed để đánh giá ổn định hơn.
 
 ## 6. Quyết định và ghi chú AI
 Quyết định là **Release** theo gate của lab; vẫn cần người xử lý các cảnh báo còn lại trước khi dùng nhãn cho mục đích khác.
